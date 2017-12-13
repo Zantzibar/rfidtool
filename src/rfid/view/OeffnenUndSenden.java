@@ -13,7 +13,8 @@ import java.awt.*;
 //TODO Dialog zur Konfiguration der Schnittstellenparameter
 
 
-public class OeffnenUndSenden extends JFrame{
+public class OeffnenUndSenden extends JFrame
+{
 
 	/**
 	 * Variable declaration
@@ -53,15 +54,20 @@ public class OeffnenUndSenden extends JFrame{
 	/**
 	 * @param args
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) 
+	{
 		System.out.println("Programm gestartet");
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
+		SwingUtilities.invokeLater(new Runnable() 
+		{
+			public void run() 
+			{
 				new OeffnenUndSenden();
 			}
 		});
 		System.out.println("Main durchlaufen");
 	}
+	
+	
 	
 	/**
 	 * Konstruktor
@@ -71,6 +77,7 @@ public class OeffnenUndSenden extends JFrame{
 		System.out.println("Konstruktor aufgerufen");
 		initComponents();
 	}
+	
 	protected void finalize()
 	{
 		System.out.println("Destruktor aufgerufen");
@@ -83,6 +90,7 @@ public class OeffnenUndSenden extends JFrame{
 		setTitle("Öffnen und Senden");
 		addWindowListener(new WindowListener());
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setLocationRelativeTo(null);
 		
 		// TODO schliessen.setEnabled(false);
 		// TODO senden.setEnabled(false);
@@ -92,10 +100,8 @@ public class OeffnenUndSenden extends JFrame{
 		aktualisieren.addActionListener(new aktualisierenActionListener());
 		senden.addActionListener(new sendenActionListener());
 		
-		empfangenJScrollPane.setVerticalScrollBarPolicy(
-				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-		empfangenJScrollPane.setHorizontalScrollBarPolicy(
-				JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		empfangenJScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		empfangenJScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		empfangenJScrollPane.setViewportView(empfangen);
 		
 		constraints.gridx = 0;
@@ -158,23 +164,29 @@ public class OeffnenUndSenden extends JFrame{
 	boolean oeffneSerialPort(String portName)
 	{
 		Boolean foundPort = false;
-		if (serialPortGeoeffnet != false) {
+		if (serialPortGeoeffnet != false) 
+		{
 			System.out.println("Serialport bereits geöffnet");
 			return false;
 		}
+		
 		System.out.println("Öffne Serialport");
 		enumComm = CommPortIdentifier.getPortIdentifiers();
-		while(enumComm.hasMoreElements()) {
+		while(enumComm.hasMoreElements()) 
+		{
 			serialPortId = (CommPortIdentifier) enumComm.nextElement();
-			if (portName.contentEquals(serialPortId.getName())) {
+			if (portName.contentEquals(serialPortId.getName())) 
+			{
 				foundPort = true;
 				break;
 			}
 		}
+		
 		if (foundPort != true) {
 			System.out.println("Serialport nicht gefunden: " + portName);
 			return false;
 		}
+		
 		try {
 			serialPort = (SerialPort) serialPortId.open("Öffnen und Senden", 500);
 		} catch (PortInUseException e) {
@@ -208,11 +220,14 @@ public class OeffnenUndSenden extends JFrame{
 	
 	void schliesseSerialPort()
 	{
-		if ( serialPortGeoeffnet == true) {
+		if ( serialPortGeoeffnet == true) 
+		{
 			System.out.println("Schließe Serialport");
 			serialPort.close();
 			serialPortGeoeffnet = false;
-		} else {
+		} 
+		else 
+		{
 			System.out.println("Serialport bereits geschlossen");
 		}
 	}
@@ -226,37 +241,64 @@ public class OeffnenUndSenden extends JFrame{
 		}
 		auswahl.removeAllItems();
 		enumComm = CommPortIdentifier.getPortIdentifiers();
-		while(enumComm.hasMoreElements()) {
+		
+		while(enumComm.hasMoreElements()) 
+		{
 			serialPortId = (CommPortIdentifier) enumComm.nextElement();
-			if (serialPortId.getPortType() == CommPortIdentifier.PORT_SERIAL) {
+			if (serialPortId.getPortType() == CommPortIdentifier.PORT_SERIAL) 
+			{
 				System.out.println("Found:" + serialPortId.getName());
 				auswahl.addItem(serialPortId.getName());
 			}
 		}
 	}
 	
+	/**
+	 * Nachricht wird hier für den Scemtec vorbereitet und 
+	 * über den output stream versendet.
+	 * @param nachricht
+	 */
 	void sendeSerialPort(String nachricht)
 	{
 		System.out.println("Sende: " + nachricht);
+		
 		if (serialPortGeoeffnet != true)
 			return;
-		try {
-			outputStream.write(nachricht.getBytes());
-		} catch (IOException e) {
+		
+		try 
+		{
+			byte[] bArr = nachricht.getBytes();
+			byte[] fullCmd = Command.calcScemtecFullCmd( bArr );
+			
+			outputStream.write(fullCmd);
+		} 
+		catch (IOException e) 
+		{
 			System.out.println("Fehler beim Senden");
 		}
 	}
 	
-	void serialPortDatenVerfuegbar() {
-		try {
+	void serialPortDatenVerfuegbar() 
+	{
+		try 
+		{
 			byte[] data = new byte[150];
 			int num;
-			while(inputStream.available() > 0) {
+		
+			while(inputStream.available() > 0) 
+			{
 				num = inputStream.read(data, 0, data.length);
 				System.out.println("Empfange: "+ new String(data, 0, num));
 				empfangen.append(new String(data, 0, num));
 			}
-		} catch (IOException e) {
+			
+			empfangen.setText(Command.cmdToDecString(data));
+			
+			//byte[] fullCmd = Command.calcScemtecFullCmd( bArr );
+			
+		} 
+		catch (IOException e) 
+		{
 			System.out.println("Fehler beim Lesen empfangener Daten");
 		}
 	}
@@ -290,11 +332,15 @@ public class OeffnenUndSenden extends JFrame{
 			aktualisiereSerialPort();
 		}
 	}
-	class sendenActionListener implements ActionListener {
-		public void actionPerformed (ActionEvent event) {
+	class sendenActionListener implements ActionListener 
+	{
+		public void actionPerformed (ActionEvent event) 
+		{
 			System.out.println("sendenActionListener");
+			
 			if ( echo.isSelected() == true)
 				empfangen.append(nachricht.getText() + "\n");
+		
 			sendeSerialPort(nachricht.getText() + "\n");
 		}
 	}
