@@ -1,5 +1,10 @@
 package rfid.view;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+
 public class Command 
 {
 	
@@ -11,7 +16,7 @@ public class Command
 	 * @param bArr payload
 	 * @return crc for scemtec SHL-2001
 	 */
-	public static byte calcScemtecCRC(byte[] bArr)
+	private static byte calcScemtecCRC(byte[] bArr)
 	{
 		byte crc = 0x0;
 		
@@ -91,4 +96,46 @@ public class Command
 		buf.append( String.format( "%02X", cmd[cmd.length - 1] ) );
 		return buf.toString();
 	}
+	
+	public static void writeToBib(String append)
+	{
+		FileWriter fw = null;
+		BufferedWriter bw = null;
+		PrintWriter out = null;
+		
+		try 
+		{
+		    fw = new FileWriter("bib.txt", true);
+		    bw = new BufferedWriter(fw);
+		    out = new PrintWriter(bw);
+		    out.println(append);
+		    out.close();
+		} 
+		catch (IOException e) 
+		{
+		    //exception handling left as an exercise for the reader
+		}
+		finally 
+		{
+		    if(out != null)
+			    out.close();
+		
+		    try 
+		    {
+		        if(bw != null)
+		            bw.close();
+		    } catch (IOException e) {
+		        //exception handling left as an exercise for the reader
+		    }
+		    
+		    try 
+		    {
+		        if(fw != null)
+		            fw.close();
+		    } catch (IOException e) {
+		        //exception handling left as an exercise for the reader
+		    }
+		}
+	}
+	
 }

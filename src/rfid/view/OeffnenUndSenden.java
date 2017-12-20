@@ -1,6 +1,8 @@
 package rfid.view;
 
 import gnu.io.*;
+
+import java.util.Arrays;
 //import javax.comm.*; 
 import java.util.Enumeration;
 import java.io.*;
@@ -137,6 +139,7 @@ public class OeffnenUndSenden extends JFrame
 		
 		constraints.gridx = 2;
 		constraints.weightx = 0;
+		echo.setSelected(true);
 		panelKommuniziere.add(echo, constraints);
 		
 		constraints.gridx = 0;
@@ -256,19 +259,22 @@ public class OeffnenUndSenden extends JFrame
 	/**
 	 * Nachricht wird hier für den Scemtec vorbereitet und 
 	 * über den output stream versendet.
+	 * 
 	 * @param nachricht
 	 */
-	void sendeSerialPort(String nachricht)
+	byte[] sendeSerialPort(String nachricht)
 	{
-		System.out.println("Sende: " + nachricht);
+		//System.out.println("Sende: " + nachricht);
+		
+		byte[] fullCmd = null;
 		
 		if (serialPortGeoeffnet != true)
-			return;
+			return null;
 		
 		try 
 		{
 			byte[] bArr = nachricht.getBytes();
-			byte[] fullCmd = Command.calcScemtecFullCmd( bArr );
+			fullCmd = Command.calcScemtecFullCmd( bArr );
 			
 			outputStream.write(fullCmd);
 		} 
@@ -276,8 +282,16 @@ public class OeffnenUndSenden extends JFrame
 		{
 			System.out.println("Fehler beim Senden");
 		}
+		
+		return fullCmd;
 	}
 	
+	/**
+	 * schaut nach, ob Daten verfügbar sind und zeigt diese im
+	 * Empfangen-Fenster an.
+	 * 
+	 * @return void
+	 */
 	void serialPortDatenVerfuegbar() 
 	{
 		try 
@@ -292,7 +306,7 @@ public class OeffnenUndSenden extends JFrame
 				empfangen.append(new String(data, 0, num));
 			}
 			
-			empfangen.setText(Command.cmdToDecString(data));
+			empfangen.setText(Command.cmdToHexString(data));
 			
 			//byte[] fullCmd = Command.calcScemtecFullCmd( bArr );
 			
@@ -326,24 +340,44 @@ public class OeffnenUndSenden extends JFrame
 			schliesseSerialPort();
 		}
 	}
-	class aktualisierenActionListener implements ActionListener {
-		public void actionPerformed (ActionEvent event) {
+	
+	/**
+	 * Aktualisiert serielle Ports
+	 * 
+	 * @author Patrick
+	 */
+	class aktualisierenActionListener implements ActionListener 
+	{
+		public void actionPerformed (ActionEvent event) 
+		{
 			System.out.println("aktualisierenActionListener");
 			aktualisiereSerialPort();
 		}
 	}
+	
+	/**
+	 * actionlistener zum versenden der Daten
+	 * 
+	 * @author Patrick
+	 */
 	class sendenActionListener implements ActionListener 
 	{
 		public void actionPerformed (ActionEvent event) 
 		{
 			System.out.println("sendenActionListener");
 			
+			byte[] sended = sendeSerialPort(nachricht.getText());
+			String sSended = Arrays.toString(sended);
+			Command.writeToBib(sSended);
+			
 			if ( echo.isSelected() == true)
-				empfangen.append(nachricht.getText() + "\n");
+			{
+				empfangen.append("send: " + sSended + "\n");
+			}
 		
-			sendeSerialPort(nachricht.getText() + "\n");
 		}
 	}
+	
 	/**
 	 * 
 	 */
