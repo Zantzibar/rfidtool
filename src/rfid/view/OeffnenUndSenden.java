@@ -70,6 +70,7 @@ public class OeffnenUndSenden extends JFrame
 	}
 	
 	
+	ReadXMLFile m_XML;
 	
 	/**
 	 * Konstruktor
@@ -77,6 +78,10 @@ public class OeffnenUndSenden extends JFrame
 	public OeffnenUndSenden()
 	{
 		System.out.println("Konstruktor aufgerufen");
+		
+		m_XML = new ReadXMLFile();
+		
+		
 		initComponents();
 	}
 	
@@ -237,11 +242,14 @@ public class OeffnenUndSenden extends JFrame
 	
 	void aktualisiereSerialPort()
 	{
+		
 		System.out.println("Akutalisiere Serialport-Liste");
-		if (serialPortGeoeffnet != false) {
+		if (serialPortGeoeffnet != false) 
+		{
 			System.out.println("Serialport ist geöffnet");
 			return;
 		}
+		
 		auswahl.removeAllItems();
 		enumComm = CommPortIdentifier.getPortIdentifiers();
 		
@@ -306,8 +314,10 @@ public class OeffnenUndSenden extends JFrame
 				empfangen.append(new String(data, 0, num));
 			}
 			
-			empfangen.setText(Command.cmdToHexString(data));
-			
+			String hexString = Command.cmdToHexString(data); 
+			empfangen.setText(hexString);
+			empfangen.append(m_XML.getNamebyTag(hexString));
+
 			//byte[] fullCmd = Command.calcScemtecFullCmd( bArr );
 			
 		} 

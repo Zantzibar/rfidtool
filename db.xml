@@ -1,0 +1,20 @@
+
+<bib>
+
+    <book>
+		<tag>[2, 50, 51, 52, 50, 51, 52, 51, 50, 3, 0]</tag>
+        <title>TCP/IP Illustrated</title>
+        <author>Stevens, W.</author>
+        <publisher>Addison-Wesley</publisher>
+        <price> 65.95</price>
+    </book>
+ 
+    <book>
+		<tag>[2, 50, 51, 52, 50, 51, 53, 54, 55, 3, 1]</tag>
+        <title>Advanced Programming in the Unix environment</title>
+        <author>Stevens, W.</author>
+        <publisher>Addison-Wesley</publisher>
+        <price>65.95</price>
+    </book>
+  
+</bib>
