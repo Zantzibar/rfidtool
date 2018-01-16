@@ -7,11 +7,17 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
 import org.w3c.dom.Element;
 import java.io.File;
+import java.util.ArrayList;
 
 public class ReadXMLFile 
 {
 	
 	NodeList nList;
+	class Book
+	{
+	    public String Tag; 
+	    public String Name;  
+	}
 	
 	public ReadXMLFile()
 	{
@@ -56,34 +62,50 @@ public class ReadXMLFile
 	    }
 	}
 	
-		public String getNamebyTag(String tag)
+
+	public ArrayList<Book> getBooks()
+	{
+		ArrayList<Book> retVal = new ArrayList<Book>();
+		
+		for (int temp = 0; temp < nList.getLength(); temp++) 
 		{
-			String retVal = "";
+			Book aBook = new Book();
 			
-			
-			for (int temp = 0; temp < nList.getLength(); temp++) 
+			Node nNode = nList.item(temp);
+
+			if (nNode.getNodeType() == Node.ELEMENT_NODE) 
 			{
-	
-				Node nNode = nList.item(temp);
-	
-	
-				if (nNode.getNodeType() == Node.ELEMENT_NODE) 
-				{
-	
-					Element eElement = (Element) nNode;
-					String cmp = eElement.getElementsByTagName("tag").item(0).getTextContent();
-					
-					if (cmp.equals(tag))
-						retVal = eElement.getElementsByTagName("title").item(0).getTextContent();
-	
-				}
+				Element eElement = (Element) nNode;
+				aBook.Tag = eElement.getElementsByTagName("tag").item(0).getTextContent();
+				aBook.Name = eElement.getElementsByTagName("title").item(0).getTextContent();
 			}
 			
-			
-			return retVal;
-			
-			
+			retVal.add(aBook);
 		}
-	  }
+		
+		return retVal;
+	}
+	
+	public String getNamebyTag(String tag)
+	{
+		String retVal = "";
+		
+		for (int temp = 0; temp < nList.getLength(); temp++) 
+		{
+			Node nNode = nList.item(temp);
+
+			if (nNode.getNodeType() == Node.ELEMENT_NODE) 
+			{
+				Element eElement = (Element) nNode;
+				String cmp = eElement.getElementsByTagName("tag").item(0).getTextContent();
+				
+				if (cmp.equals(tag))
+					retVal = eElement.getElementsByTagName("title").item(0).getTextContent();
+			}
+		}
+		
+		return retVal;		
+	}
+}
 	
 	

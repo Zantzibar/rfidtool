@@ -1,7 +1,9 @@
 package rfid.view;
 
 import gnu.io.*;
+import rfid.view.ReadXMLFile.Book;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 //import javax.comm.*; 
 import java.util.Enumeration;
@@ -9,6 +11,8 @@ import java.io.*;
 import java.util.TooManyListenersException;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+
 import java.awt.event.*;
 import java.awt.*;
 
@@ -53,6 +57,9 @@ public class OeffnenUndSenden extends JFrame
 	JTextArea empfangen = new JTextArea();
 	JScrollPane empfangenJScrollPane = new JScrollPane();
 	
+	JTextArea bibTA = new JTextArea();
+	JScrollPane bibSP = new JScrollPane();
+	
 	/**
 	 * @param args
 	 */
@@ -94,7 +101,7 @@ public class OeffnenUndSenden extends JFrame
 	{
 		GridBagConstraints constraints = new GridBagConstraints();
 		
-		setTitle("Öffnen und Senden");
+		setTitle("Booklib");
 		addWindowListener(new WindowListener());
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLocationRelativeTo(null);
@@ -110,12 +117,19 @@ public class OeffnenUndSenden extends JFrame
 		empfangenJScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		empfangenJScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		empfangenJScrollPane.setViewportView(empfangen);
+
+		bibSP.setViewportView(bibTA);
 		
+		Border eBorder = BorderFactory.createEtchedBorder();
+        panel.setBorder(BorderFactory.createTitledBorder(eBorder, "Connection"));
+        
 		constraints.gridx = 0;
 		constraints.gridy = 0;
 		constraints.fill = GridBagConstraints.HORIZONTAL;
 		constraints.weightx = 0.5;
 		constraints.insets = new Insets(5, 5, 5, 5);
+		
+		
 		panelSetup.add(auswahl, constraints);
 		
 		constraints.gridx = 1;
@@ -127,6 +141,7 @@ public class OeffnenUndSenden extends JFrame
 		
 		constraints.gridx = 3;
 		panelSetup.add(aktualisieren, constraints);
+		
 		
 		constraints.gridx = 0;
 		constraints.gridy = 0;
@@ -159,11 +174,16 @@ public class OeffnenUndSenden extends JFrame
 		constraints.fill = GridBagConstraints.BOTH;
 		panel.add(empfangenJScrollPane, constraints);
 		
+		
+		constraints.gridx = 0;
+		constraints.gridy = 3;
+		panel.add(bibSP, constraints);
+		
 		aktualisiereSerialPort();
 		
 		add(panel);
 		pack();
-		setSize(600, 300);
+		setSize(600, 400);
 		setVisible(true);
 
 		System.out.println("Fenster erzeugt");
@@ -171,6 +191,10 @@ public class OeffnenUndSenden extends JFrame
 	
 	boolean oeffneSerialPort(String portName)
 	{
+		//db laden mit usern und buechern
+		loadUsersAndBooks();
+				
+				
 		Boolean foundPort = false;
 		if (serialPortGeoeffnet != false) 
 		{
@@ -223,9 +247,21 @@ public class OeffnenUndSenden extends JFrame
 		}
 		
 		serialPortGeoeffnet = true;
+		
+		
+		
 		return true;
 	}
 	
+	private void loadUsersAndBooks() 
+	{
+		ArrayList<Book> list = m_XML.getBooks();
+		
+		
+		for(int i = 0; i < list.size(); i++)
+			bibTA.append("Tag: " + list.get(i).Tag + "\n" + "Name: " + list.get(i).Name + "\n\n");
+	}
+
 	void schliesseSerialPort()
 	{
 		if ( serialPortGeoeffnet == true) 
