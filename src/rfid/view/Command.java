@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 
 public class Command 
 {
@@ -36,7 +37,7 @@ public class Command
 	*/
 	public static byte[] calcScemtecFullCmd( byte[] cmd )
 	{
-		byte bArr[] = new byte[cmd.length + 2]; 		// STX, cmd, ETX
+		byte bArr[] = new byte[cmd.length + 3]; 		// STX, cmd, ETX
 		bArr[0] = STX; 									// start with STX
 		
 		for (int i = 0; i < cmd.length; i++ ) 
@@ -47,16 +48,10 @@ public class Command
 		bArr[cmd.length + 1] = ETX; 					// end with ETX
 		byte crc = calcScemtecCRC( bArr ); 				// get CRC
 		// new array with CRC
-		byte bArr2[] = new byte[bArr.length + 1]; 		// STX, cmd, ETX, CRC
 
-		for (int i = 0; i < bArr.length; i++ ) 
-		{
-			bArr2[i] = bArr[i]; // copy
-		}
-	
-		bArr2[bArr.length] = crc;
+		bArr[bArr.length-1] = crc;
 		
-		return bArr2;
+		return bArr;
 	}
 	
 	
@@ -95,6 +90,25 @@ public class Command
 		
 		buf.append( String.format( "%02X", cmd[cmd.length - 1] ) );
 		return buf.toString();
+	}
+	
+	public static String hexStringToString(byte[] cmd ) 
+	{
+		String hex = cmdToHexString(cmd);
+		
+	    int l = hex.length();
+	    byte[] data = new byte[l/2];
+	    
+	    for (int i = 0; i < l; i += 2) 
+	    {
+	        data[i/2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
+	                             + Character.digit(hex.charAt(i+1), 16));
+	    }
+
+
+	    String st = new String(data, StandardCharsets.UTF_8);
+	    
+	    return st;
 	}
 	
 	public static void writeToBib(String append)

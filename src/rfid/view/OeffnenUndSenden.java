@@ -32,12 +32,15 @@ public class OeffnenUndSenden extends JFrame
 	InputStream inputStream;
 	Boolean serialPortGeoeffnet = false;
 
-	int baudrate = 9600;
+	int baudrate = 115200;//9600;
 	int dataBits = SerialPort.DATABITS_8;
 	int stopBits = SerialPort.STOPBITS_1;
 	int parity = SerialPort.PARITY_NONE;
 	
 	String hexString = "[0, 1, 2, 3, dummyTag]";
+	int iCount = 0;
+	
+	byte[] dataToRead;
 	
 	/**
 	 * Fenster
@@ -53,6 +56,10 @@ public class OeffnenUndSenden extends JFrame
 	JButton aktualisieren = new JButton("Aktualisieren");
 	
 	JButton senden = new JButton("Nachricht senden");
+	
+	JLabel tagCount = new JLabel();
+	
+	
 	JButton register = new JButton("Registrieren");
 	
 	JTextField nachricht = new JTextField();
@@ -63,6 +70,8 @@ public class OeffnenUndSenden extends JFrame
 	
 	JTextArea bibTA = new JTextArea();
 	JScrollPane bibSP = new JScrollPane();
+	
+	ArrayList<String> sArrHexTags = new ArrayList<String>();
 	
 	/**
 	 * @param args
@@ -130,8 +139,8 @@ public class OeffnenUndSenden extends JFrame
 		Border eBorder = BorderFactory.createEtchedBorder();
 		panelSetup.setBorder(BorderFactory.createTitledBorder(eBorder, "Connection"));
         
-        Border eBorderBib = BorderFactory.createEtchedBorder();
-        bibSP.setBorder(BorderFactory.createTitledBorder(eBorderBib, "Bib"));
+		eBorder = BorderFactory.createEtchedBorder();
+        bibSP.setBorder(BorderFactory.createTitledBorder(eBorder, "Bib"));
         
 		constraints.gridx = 0;
 		constraints.gridy = 0;
@@ -158,24 +167,38 @@ public class OeffnenUndSenden extends JFrame
 		constraints.weightx = 1;
 		panel.add(panelSetup, constraints);
 
-/*		constraints.gridx = 0;
+
+		eBorder = BorderFactory.createEtchedBorder();
+		tagCount.setBorder(BorderFactory.createTitledBorder(eBorder, "Count"));
+	
+		setTagCounter();
+		
+		constraints.gridx = 0;
 		constraints.gridy = 0;
+		constraints.weightx = 0;
+		panelKommuniziere.add(tagCount, constraints);
+		
+		constraints.gridx = 1;
+		constraints.gridy = 0;
+		constraints.weightx = 0;
+		panelKommuniziere.add(register, constraints);
+
+		constraints.gridx = 0;
+		constraints.gridy = 1;
 		constraints.weightx = 0;
 		panelKommuniziere.add(senden, constraints);
 		
 		constraints.gridx = 1;
+		constraints.gridy = 1;
 		constraints.weightx = 1;
 		panelKommuniziere.add(nachricht, constraints);
 		
 		constraints.gridx = 2;
+		constraints.gridy = 1;
 		constraints.weightx = 0;
 		echo.setSelected(true);
 		panelKommuniziere.add(echo, constraints);
-	*/	
-		constraints.gridx = 0;
-		constraints.gridy = 0;
-		constraints.weightx = 0;
-		panelKommuniziere.add(register, constraints);
+
 		
 		constraints.gridx = 0;
 		constraints.gridy = 1;
@@ -202,6 +225,12 @@ public class OeffnenUndSenden extends JFrame
 		setVisible(true);
 
 		System.out.println("Fenster erzeugt");
+	}
+	
+	public void setTagCounter()
+	{
+		String tmp = "<html><body>" + "total: " + Integer.toString(iCount) + "<br>" + "different: "  + Integer.toString(sArrHexTags.size()) + "</body></html>";
+		tagCount.setText(tmp);
 	}
 	
 	boolean oeffneSerialPort(String portName)
@@ -263,6 +292,34 @@ public class OeffnenUndSenden extends JFrame
 		
 		serialPortGeoeffnet = true;
 		
+		Thread thread = new Thread()
+		{
+		    public void run()
+		    {
+		    	// Einschalten der HF
+		    	sendeSerialPort("F00001");
+		    	
+		    	int i = 0;
+		    	
+		    	while (true)
+		    	{
+			    	System.out.println("Thread Running: " + i);
+			    	i++;
+			    	sendeSerialPort("6c20s");
+			    	
+			    	try {
+			    		sleep(100);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+		    	}
+		    }
+		};
+
+		
+    	thread.start();
+    	
 		
 		
 		return true;
@@ -283,6 +340,8 @@ public class OeffnenUndSenden extends JFrame
 		if ( serialPortGeoeffnet == true) 
 		{
 			System.out.println("Schließe Serialport");
+			
+	    	sendeSerialPort("F00000");
 			serialPort.close();
 			serialPortGeoeffnet = false;
 		} 
@@ -357,22 +416,69 @@ public class OeffnenUndSenden extends JFrame
 		try 
 		{
 			byte[] data = new byte[150];
-			int num;
 		
+			int num = 0;
+			String sResponse = "";
+			
+			// bsp response: 6C210003 6AF62A0F000104E0 73EE2A0F000104E0 C3E22A0F000104E0
+			// (response: 3 tags, 3 id’s)
+			
 			while(inputStream.available() > 0) 
 			{
 				num = inputStream.read(data, 0, data.length);
-				System.out.println("Empfange: "+ new String(data, 0, num));
-				empfangen.append(new String(data, 0, num));
+				
+				sResponse = new String(data, 0, num);
+				//System.out.println("Empfange: "+ sResponse);
+//				empfangen.append(new String(data, 0, num));
 			}
 			
-			hexString = Command.cmdToHexString(data);
+			num = 0;
+			int idx = sResponse.indexOf("6C20");
 			
-			empfangen.setText(hexString);			
-			empfangen.append(m_XML.getNamebyTag(hexString));
+			if(idx >= 0)
+			{
+				sResponse = sResponse.substring(idx+4, idx+10);
+				num = Integer.parseInt(sResponse);				
+			}
+			
+			if(num > 0)
+			{
+				sendeSerialPort("6C21");
+			}
 
-			//byte[] fullCmd = Command.calcScemtecFullCmd( bArr );
-			
+			// haben wir schon ids
+			idx = sResponse.indexOf("6C21");
+
+			if(idx >= 0)
+			{
+				System.out.println("Empfange: "+ sResponse);
+				String stmp = sResponse.substring(idx+4, idx+8);
+
+				System.out.println(stmp);
+				num = Integer.parseInt(stmp);
+				
+				System.out.println("anzahl: " + num);
+				String id = "";
+				int offset = idx+8;
+				for(int i = 0; i < num; i++)
+				{
+					id = sResponse.substring(offset + 16*i, offset + 16*(i+1));
+
+					if(!sArrHexTags.contains(id))
+					{
+						sArrHexTags.add(id);
+					}
+					
+					empfangen.setText(id);			
+					empfangen.append(m_XML.getNamebyTag(id));
+
+					iCount++;
+		
+					setTagCounter();	
+					
+					hexString = id;
+				}	
+			}			
 		} 
 		catch (IOException e) 
 		{
@@ -466,22 +572,25 @@ public class OeffnenUndSenden extends JFrame
 	/**
 	 * 
 	 */
-	class serialPortEventListener implements SerialPortEventListener {
-		public void serialEvent(SerialPortEvent event) {
+	class serialPortEventListener implements SerialPortEventListener 
+	{
+		public void serialEvent(SerialPortEvent event) 
+		{
 			System.out.println("serialPortEventlistener");
-			switch (event.getEventType()) {
-			case SerialPortEvent.DATA_AVAILABLE:
-				serialPortDatenVerfuegbar();
-				break;
-			case SerialPortEvent.BI:
-			case SerialPortEvent.CD:
-			case SerialPortEvent.CTS:
-			case SerialPortEvent.DSR:
-			case SerialPortEvent.FE:
-			case SerialPortEvent.OUTPUT_BUFFER_EMPTY:
-			case SerialPortEvent.PE:
-			case SerialPortEvent.RI:
-			default:
+			switch (event.getEventType()) 
+			{
+				case SerialPortEvent.DATA_AVAILABLE:
+					serialPortDatenVerfuegbar();
+					break;
+				case SerialPortEvent.BI:
+				case SerialPortEvent.CD:
+				case SerialPortEvent.CTS:
+				case SerialPortEvent.DSR:
+				case SerialPortEvent.FE:
+				case SerialPortEvent.OUTPUT_BUFFER_EMPTY:
+				case SerialPortEvent.PE:
+				case SerialPortEvent.RI:
+				default:
 			}
 		}
 	}	
