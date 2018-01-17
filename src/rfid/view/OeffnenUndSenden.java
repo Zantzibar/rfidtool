@@ -13,6 +13,8 @@ import java.util.TooManyListenersException;
 import javax.swing.*;
 import javax.swing.border.Border;
 
+import org.omg.PortableServer.ServantRetentionPolicyOperations;
+
 import java.awt.event.*;
 import java.awt.*;
 
@@ -73,6 +75,7 @@ public class OeffnenUndSenden extends JFrame
 	
 	ArrayList<String> sArrHexTags = new ArrayList<String>();
 	
+	String personID = "";
 	/**
 	 * @param args
 	 */
@@ -182,7 +185,7 @@ public class OeffnenUndSenden extends JFrame
 		constraints.gridy = 0;
 		constraints.weightx = 0;
 		panelKommuniziere.add(register, constraints);
-
+/*
 		constraints.gridx = 0;
 		constraints.gridy = 1;
 		constraints.weightx = 0;
@@ -198,7 +201,7 @@ public class OeffnenUndSenden extends JFrame
 		constraints.weightx = 0;
 		echo.setSelected(true);
 		panelKommuniziere.add(echo, constraints);
-
+*/
 		
 		constraints.gridx = 0;
 		constraints.gridy = 1;
@@ -208,20 +211,22 @@ public class OeffnenUndSenden extends JFrame
 		constraints.gridx = 0;
 		constraints.gridy = 2;
 		constraints.weightx = 1;
-		constraints.weighty = 1;
+		constraints.weighty = 0.5;
 		constraints.fill = GridBagConstraints.BOTH;
 		panel.add(empfangenJScrollPane, constraints);
 		
 		
 		constraints.gridx = 0;
 		constraints.gridy = 3;
+		constraints.weighty = 3;
 		panel.add(bibSP, constraints);
 		
 		aktualisiereSerialPort();
 		
 		add(panel);
 		pack();
-		setSize(600, 400);
+		setSize(600, 600);
+		setLocation(400, 80);
 		setVisible(true);
 
 		System.out.println("Fenster erzeugt");
@@ -229,7 +234,9 @@ public class OeffnenUndSenden extends JFrame
 	
 	public void setTagCounter()
 	{
-		String tmp = "<html><body>" + "total: " + Integer.toString(iCount) + "<br>" + "different: "  + Integer.toString(sArrHexTags.size()) + "</body></html>";
+		String tmp = "<html><body>" + "total: " + Integer.toString(iCount) + "<br>" + 
+					 "different: "  + Integer.toString(sArrHexTags.size()) + "</body></html>";
+		
 		tagCount.setText(tmp);
 	}
 	
@@ -308,7 +315,7 @@ public class OeffnenUndSenden extends JFrame
 			    	sendeSerialPort("6c20s");
 			    	
 			    	try {
-			    		sleep(100);
+			    		sleep(200);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -329,7 +336,7 @@ public class OeffnenUndSenden extends JFrame
 	{
 		ArrayList<Book> list = m_XML.getBooks();
 		
-		bibTA.removeAll();
+		bibTA.setText("");
 		
 		for(int i = 0; i < list.size(); i++)
 			bibTA.append("Tag: " + list.get(i).Tag + "\n" + "Name: " + list.get(i).Name + "\n\n");
@@ -438,14 +445,16 @@ public class OeffnenUndSenden extends JFrame
 			if(idx >= 0)
 			{
 				sResponse = sResponse.substring(idx+4, idx+10);
-				num = Integer.parseInt(sResponse);				
+				num = Integer.parseInt(sResponse);		
+
+				if(num > 0)
+				{
+					sendeSerialPort("6C21");
+					return;
+				}
 			}
 			
-			if(num > 0)
-			{
-				sendeSerialPort("6C21");
-			}
-
+			
 			// haben wir schon ids
 			idx = sResponse.indexOf("6C21");
 
@@ -453,11 +462,10 @@ public class OeffnenUndSenden extends JFrame
 			{
 				System.out.println("Empfange: "+ sResponse);
 				String stmp = sResponse.substring(idx+4, idx+8);
-
-				System.out.println(stmp);
 				num = Integer.parseInt(stmp);
 				
 				System.out.println("anzahl: " + num);
+
 				String id = "";
 				int offset = idx+8;
 				for(int i = 0; i < num; i++)
@@ -469,9 +477,19 @@ public class OeffnenUndSenden extends JFrame
 						sArrHexTags.add(id);
 					}
 					
-					empfangen.setText(id);			
+					empfangen.setText(id + "\n");			
 					empfangen.append(m_XML.getNamebyTag(id));
-
+					
+					if(m_XML.IsPerson(id))
+					{
+						personID = id;
+						JOptionPane.showMessageDialog(null, "Person erkannt.", "InfoBox", JOptionPane.INFORMATION_MESSAGE);
+					}
+					else
+					{
+						m_XML.addBookToPerson(personID, id);
+					}
+					
 					iCount++;
 		
 					setTagCounter();	
@@ -541,7 +559,16 @@ public class OeffnenUndSenden extends JFrame
 
 			if(name != null)
 			{
-				m_XML.addNodeToXML(hexString, name);
+				int ret = JOptionPane.showConfirmDialog(null,
+                        "Ja für Person.\nNein für Bücher.",
+                        "Person oder Buch?",
+                        JOptionPane.YES_NO_CANCEL_OPTION);
+				
+				if(ret != 2)
+				{	
+					m_XML.addNodeToXML(hexString, name, ret);
+					loadUsersAndBooks();
+				}
 			}
 		}
 	}

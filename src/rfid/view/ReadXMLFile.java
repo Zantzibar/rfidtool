@@ -11,6 +11,9 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.parsers.DocumentBuilder;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
+
+import com.sun.xml.internal.fastinfoset.algorithm.BooleanEncodingAlgorithm;
+
 import org.w3c.dom.Node;
 import org.w3c.dom.Element;
 import java.io.File;
@@ -49,7 +52,7 @@ public class ReadXMLFile
 			
 			System.out.println("Root element :" + doc.getDocumentElement().getNodeName());
 			
-			nList = doc.getElementsByTagName("book");
+			nList = doc.getElementsByTagName("object");
 			
 			System.out.println("----------------------------");
 			
@@ -102,6 +105,31 @@ public class ReadXMLFile
 		return retVal;
 	}
 	
+	public Boolean IsPerson(String id)
+	{
+		Boolean bRet = false;
+	
+		for (int temp = 0; temp < nList.getLength(); temp++) 
+		{
+			Node nNode = nList.item(temp);
+	
+			if (nNode.getNodeType() == Node.ELEMENT_NODE) 
+			{
+				Element eElement = (Element) nNode;
+				String cmp = eElement.getElementsByTagName("tag").item(0).getTextContent();
+				
+				String tmp = "";
+				if (cmp.equals(id))
+					tmp = eElement.getAttribute("object");
+				
+				if(tmp.equals("person"))
+					bRet = true;
+			}
+		}
+		
+		return bRet;
+	}
+	
 	public String getNamebyTag(String tag)
 	{
 		String retVal = "";
@@ -123,7 +151,43 @@ public class ReadXMLFile
 		return retVal;		
 	}
 	
-	public void addNodeToXML(String stag, String title)
+	public void addBookToPerson(String idPerson, String idBook)
+	{
+		try
+		{
+			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
+
+			File is = new File(sFileName);
+			Document doc = docBuilder.parse(is);        
+			
+			Node root = doc.getFirstChild();        
+			Element person = doc.createElement("person");
+			person.setAttribute("id", idPerson);
+			
+			Element eBook = doc.createElement("book");
+			eBook.appendChild(doc.createTextNode(idBook));
+			
+			person.appendChild(eBook);
+			
+			root.appendChild(person);
+			
+			Transformer transformer = TransformerFactory.newInstance().newTransformer();
+			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+			Result output = new StreamResult(new File("db.xml"));
+			Source input = new DOMSource(doc);
+
+			transformer.transform(input, output);		
+			
+		} 
+		catch (Exception e) 
+		{
+			e.printStackTrace();
+		}
+	}
+	
+	public void addNodeToXML(String stag, String title, int iRet)
 	{
 		try
 		{
@@ -134,7 +198,12 @@ public class ReadXMLFile
 			Document doc = docBuilder.parse(is);        
 			
 			Node root = doc.getFirstChild();
-			Element book = doc.createElement("book");
+			Element book = doc.createElement("object");
+			
+			if(iRet == 0)
+				book.setAttribute("object", "person");
+			else if(iRet == 1)
+				book.setAttribute("object", "Buch");
 			
 			Element eTag = doc.createElement("tag");
 			eTag.appendChild(doc.createTextNode(stag));
@@ -153,6 +222,11 @@ public class ReadXMLFile
 			Source input = new DOMSource(doc);
 
 			transformer.transform(input, output);
+			
+			
+			
+			
+			
 		} 
 		catch (Exception e) 
 		{

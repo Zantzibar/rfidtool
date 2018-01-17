@@ -1,12 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <bib>
 
-<book>
-        <tag>D740C34C000104E0</tag>
-        <title>Herr Mayer</title>
-    </book>
-<book>
-        <tag>B83FC34C000104E0</tag>
-        <title>kochbuch_4</title>
-    </book>
+<person id="">
+        <book>9641C34C000104E0</book>
+    </person>
+<person id="">
+        <book>9641C34C000104E0</book>
+    </person>
+<object object="person">
+        <tag>9641C34C000104E0</tag>
+        <title>mayer</title>
+    </object>
+<person id="9641C34C000104E0">
+        <book>7B40C34C000104E0</book>
+    </person>
+<person id="9641C34C000104E0">
+        <book>B73FC34C000104E0</book>
+    </person>
+<person id="9641C34C000104E0">
+        <book>9E39C34C000104E0</book>
+    </person>
 </bib>
