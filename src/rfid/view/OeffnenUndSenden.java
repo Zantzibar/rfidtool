@@ -37,6 +37,8 @@ public class OeffnenUndSenden extends JFrame
 	int stopBits = SerialPort.STOPBITS_1;
 	int parity = SerialPort.PARITY_NONE;
 	
+	String hexString = "[0, 1, 2, 3, dummyTag]";
+	
 	/**
 	 * Fenster
 	 */
@@ -51,6 +53,8 @@ public class OeffnenUndSenden extends JFrame
 	JButton aktualisieren = new JButton("Aktualisieren");
 	
 	JButton senden = new JButton("Nachricht senden");
+	JButton register = new JButton("Registrieren");
+	
 	JTextField nachricht = new JTextField();
 	JCheckBox echo = new JCheckBox("Echo");
 	
@@ -102,6 +106,8 @@ public class OeffnenUndSenden extends JFrame
 		GridBagConstraints constraints = new GridBagConstraints();
 		
 		setTitle("Booklib");
+		hexString = "[0, 1, 2, 3, dummyTag]";
+		
 		addWindowListener(new WindowListener());
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLocationRelativeTo(null);
@@ -113,6 +119,7 @@ public class OeffnenUndSenden extends JFrame
 		schliessen.addActionListener(new schliessenActionListener());
 		aktualisieren.addActionListener(new aktualisierenActionListener());
 		senden.addActionListener(new sendenActionListener());
+		register.addActionListener(new registerActionListener());
 		
 		empfangenJScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		empfangenJScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -121,7 +128,10 @@ public class OeffnenUndSenden extends JFrame
 		bibSP.setViewportView(bibTA);
 		
 		Border eBorder = BorderFactory.createEtchedBorder();
-        panel.setBorder(BorderFactory.createTitledBorder(eBorder, "Connection"));
+		panelSetup.setBorder(BorderFactory.createTitledBorder(eBorder, "Connection"));
+        
+        Border eBorderBib = BorderFactory.createEtchedBorder();
+        bibSP.setBorder(BorderFactory.createTitledBorder(eBorderBib, "Bib"));
         
 		constraints.gridx = 0;
 		constraints.gridy = 0;
@@ -148,7 +158,7 @@ public class OeffnenUndSenden extends JFrame
 		constraints.weightx = 1;
 		panel.add(panelSetup, constraints);
 
-		constraints.gridx = 0;
+/*		constraints.gridx = 0;
 		constraints.gridy = 0;
 		constraints.weightx = 0;
 		panelKommuniziere.add(senden, constraints);
@@ -161,6 +171,11 @@ public class OeffnenUndSenden extends JFrame
 		constraints.weightx = 0;
 		echo.setSelected(true);
 		panelKommuniziere.add(echo, constraints);
+	*/	
+		constraints.gridx = 0;
+		constraints.gridy = 0;
+		constraints.weightx = 0;
+		panelKommuniziere.add(register, constraints);
 		
 		constraints.gridx = 0;
 		constraints.gridy = 1;
@@ -257,6 +272,7 @@ public class OeffnenUndSenden extends JFrame
 	{
 		ArrayList<Book> list = m_XML.getBooks();
 		
+		bibTA.removeAll();
 		
 		for(int i = 0; i < list.size(); i++)
 			bibTA.append("Tag: " + list.get(i).Tag + "\n" + "Name: " + list.get(i).Name + "\n\n");
@@ -350,8 +366,9 @@ public class OeffnenUndSenden extends JFrame
 				empfangen.append(new String(data, 0, num));
 			}
 			
-			String hexString = Command.cmdToHexString(data); 
-			empfangen.setText(hexString);
+			hexString = Command.cmdToHexString(data);
+			
+			empfangen.setText(hexString);			
 			empfangen.append(m_XML.getNamebyTag(hexString));
 
 			//byte[] fullCmd = Command.calcScemtecFullCmd( bArr );
@@ -401,6 +418,28 @@ public class OeffnenUndSenden extends JFrame
 		}
 	}
 	
+	
+	/**
+	 * actionlistener zum versenden der Daten
+	 * 
+	 * @author Patrick
+	 */
+	class registerActionListener implements ActionListener 
+	{
+		public void actionPerformed (ActionEvent event) 
+		{
+			System.out.println("registerActionListener");
+			
+			JFrame frame = new JFrame("Registrierung");
+			String name = JOptionPane.showInputDialog(frame, "Register Tag?", hexString, JOptionPane.QUESTION_MESSAGE);
+
+			if(name != null)
+			{
+				m_XML.addNodeToXML(hexString, name);
+			}
+		}
+	}
+
 	/**
 	 * actionlistener zum versenden der Daten
 	 * 

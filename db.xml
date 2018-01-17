@@ -1,4 +1,4 @@
-
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <bib>
 
     <book>
@@ -10,5 +10,21 @@
 		<tag>[2, 50, 51, 52, 50, 51, 53, 54, 55, 3, 1]</tag>
         <title>Advanced Programming in the Unix environment</title>
     </book>
-  
+
+<book>
+        <tag>[0, 1, 2, 3, dummyTag]</tag>
+        <title>sdfsdf</title>
+    </book>
+<book>
+        <tag>[0, 1, 2, 3, dummyTag]</tag>
+        <title>hjhhjkh</title>
+    </book>
+<book>
+        <tag>[0, 1, 2, 3, dummyTag]</tag>
+        <title>fghfghfgh</title>
+    </book>
+<book>
+        <tag>[0, 1, 2, 3, dummyTag]</tag>
+        <title>asdasdasd</title>
+    </book>
 </bib>
